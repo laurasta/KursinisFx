@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<AnchorPane prefHeight="172.0" prefWidth="368.0" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.kursinisfx.fxControllers.NewVehicleWindow">
+    <children>
+        <MenuBar prefHeight="25.0" prefWidth="382.0">
+            <menus>
+                <Menu mnemonicParsing="false" text="Back">
+                    <items>
+                        <MenuItem fx:id="cancelVehicleCreate" mnemonicParsing="false" onAction="#returnToPrevious" text="Go back" />
+                    </items>
+                </Menu>
+            </menus>
+        </MenuBar>
+        <Label layoutX="142.0" layoutY="25.0" text="New Vehicle">
+            <font>
+                <Font name="JetBrains Mono ExtraBold" size="15.0" />
+            </font></Label>
+        <TextField fx:id="modelField" layoutX="33.0" layoutY="62.0" promptText="Enter model" />
+        <TextField fx:id="licenseNumberField" layoutX="33.0" layoutY="111.0" promptText="Enter license number" />
+        <Label layoutX="33.0" layoutY="45.0" text="Model:" />
+        <Label layoutX="32.0" layoutY="94.0" text="License number:" />
+        <Button fx:id="createVehicleF" layoutX="300.0" layoutY="111.0" mnemonicParsing="false" onAction="#CreateVehicle" text="Create" />
+    </children>
+</AnchorPane>

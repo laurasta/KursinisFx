@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<AnchorPane prefHeight="401.0" prefWidth="386.0" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.kursinisfx.fxControllers.AllUsersWindow">
+   <children>
+       <MenuBar prefHeight="25.0" prefWidth="386.0">
+           <menus>
+               <Menu mnemonicParsing="false" text="Log out">
+                   <items>
+                       <MenuItem fx:id="logOutBtn" mnemonicParsing="false" onAction="#logout" text="Log out" />
+                   </items>
+               </Menu>
+               <Menu mnemonicParsing="false" text="Destinations">
+                   <items>
+                       <MenuItem fx:id="destinationsBtn" mnemonicParsing="false" onAction="#allDestinations" text="All destinations" />
+                   </items>
+               </Menu>
+               <Menu mnemonicParsing="false" text="Vehicle">
+                   <items>
+                       <MenuItem fx:id="vehiclesBtn" mnemonicParsing="false" onAction="#allVehicles" text="All vehicles" />
+                   </items>
+               </Menu>
+               <Menu mnemonicParsing="false" text="Users">
+                   <items>
+                       <MenuItem fx:id="usersBtn" mnemonicParsing="false" onAction="#allUsers" text="All users" />
+                   </items>
+               </Menu>
+               <Menu mnemonicParsing="false" text="Forum">
+                   <items>
+                       <MenuItem fx:id="forumBtn" mnemonicParsing="false" onAction="#goToForum" text="Forum" />
+                   </items>
+               </Menu>
+           </menus>
+       </MenuBar>
+       <Label layoutX="155.0" layoutY="34.0" text="All users">
+           <font>
+               <Font name="JetBrains Mono ExtraBold" size="14.0" />
+           </font></Label>
+       <ListView fx:id="allUsersL" layoutX="21.0" layoutY="67.0" prefHeight="248.0" prefWidth="343.0" />
+       <Button fx:id="deleteBtn" layoutX="21.0" layoutY="343.0" mnemonicParsing="false" onAction="#deleteUser" text="Delete" />
+      <Button fx:id="updateBtn" layoutX="166.0" layoutY="343.0" mnemonicParsing="false" onAction="#updateUser" text="Update" />
+      <Button fx:id="createBtn" layoutX="313.0" layoutY="343.0" mnemonicParsing="false" onAction="#createUser" text="Create" />
+   </children>
+</AnchorPane>

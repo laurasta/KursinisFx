@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<AnchorPane prefHeight="508.0" prefWidth="382.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.kursinisfx.fxControllers.RegistrationPage">
+   <children>
+      <MenuBar prefHeight="25.0" prefWidth="382.0">
+         <menus>
+            <Menu mnemonicParsing="false" text="Back">
+               <items>
+                  <MenuItem fx:id="cancelRegistration" mnemonicParsing="false" onAction="#returnToPrevious" text="Go back" />
+               </items>
+            </Menu>
+         </menus>
+      </MenuBar>
+      <TextField fx:id="loginField" layoutX="27.0" layoutY="62.0" promptText="Enter login" />
+      <PasswordField fx:id="passwordField" layoutX="27.0" layoutY="110.0" promptText="Enter password" />
+      <TextField fx:id="nameField" layoutX="27.0" layoutY="159.0" promptText="Enter name" />
+      <TextField fx:id="surnameField" layoutX="202.0" layoutY="57.0" promptText="Enter surname" />
+      <TextField fx:id="emailField" layoutX="203.0" layoutY="106.0" promptText="Enter email" />
+      <TextField fx:id="phoneNumberField" layoutX="200.0" layoutY="155.0" promptText="Enter phone number" />
+      <CheckBox fx:id="HealthCertifField" layoutX="28.0" layoutY="292.0" mnemonicParsing="false" text="Health Certificate" />
+      <Button fx:id="createBtn" layoutX="258.0" layoutY="410.0" mnemonicParsing="false" onAction="#createNewUser" text="Create new User" />
+      <TextField fx:id="driverLicenseField" layoutX="27.0" layoutY="250.0" onAction="#disableFields" promptText=" A,B1,B,C1..." />
+      <RadioButton fx:id="driverRadio" layoutX="75.0" layoutY="199.0" mnemonicParsing="false" onAction="#disableFields" text="Driver" />
+      <RadioButton fx:id="managerRadio" layoutX="240.0" layoutY="199.0" mnemonicParsing="false" onAction="#disableFields" text="Manager" />
+      <TextField fx:id="workEmailField" layoutX="207.0" layoutY="254.0" onAction="#disableFields" promptText="Enter work email" />
+      <CheckBox fx:id="isAdminField" layoutX="211.0" layoutY="296.0" mnemonicParsing="false" text="Admin" />
+      <Label layoutX="114.0" layoutY="3.0" text="User registration">
+         <font>
+            <Font name="JetBrains Mono ExtraBold" size="15.0" />
+         </font></Label>
+      <Label fx:id="driverLicenseT" layoutX="27.0" layoutY="233.0" text="Driver licenses:" />
+      <Label fx:id="workEmailT" layoutX="207.0" layoutY="237.0" text="Work email:" />
+      <Label layoutX="26.0" layoutY="45.0" text="Login:" />
+      <Label layoutX="28.0" layoutY="93.0" text="Password:" />
+      <Label layoutX="29.0" layoutY="142.0" text="Name:" />
+      <Label layoutX="201.0" layoutY="40.0" text="Surname:" />
+      <Label layoutX="200.0" layoutY="89.0" text="Email:" />
+      <Label layoutX="200.0" layoutY="138.0" text="Phone number:" />
+      <Button fx:id="addVehicleBtn" layoutX="36.0" layoutY="410.0" mnemonicParsing="false" onAction="#AddVehicle" text="Add vehicle" />
+      <ComboBox fx:id="vehicleCombobox" layoutX="31.0" layoutY="362.0" prefWidth="150.0" promptText="Pick a Vehicle" />
+   </children>
+</AnchorPane>

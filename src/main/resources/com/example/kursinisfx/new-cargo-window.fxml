@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<AnchorPane prefHeight="228.0" prefWidth="383.0" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.kursinisfx.fxControllers.NewCargoWindow">
+    <children>
+        <MenuBar prefHeight="25.0" prefWidth="382.0">
+            <menus>
+                <Menu mnemonicParsing="false" text="Back">
+                    <items>
+                        <MenuItem fx:id="cancelCargoCreate" mnemonicParsing="false" onAction="#returnToPrevious" text="Go back" />
+                    </items>
+                </Menu>
+            </menus>
+        </MenuBar>
+        <Label layoutX="142.0" layoutY="25.0" text="New Cargo">
+            <font>
+                <Font name="JetBrains Mono ExtraBold" size="15.0" />
+            </font></Label>
+        <TextField fx:id="contentField" layoutX="33.0" layoutY="111.0" promptText="Enter content" />
+        <Label layoutX="33.0" layoutY="45.0" text="Type:" />
+        <Label layoutX="32.0" layoutY="94.0" text="Content:" />
+        <Button fx:id="createVehicleF" layoutX="306.0" layoutY="175.0" mnemonicParsing="false" onAction="#CreateCargo" text="Create" />
+      <TextField fx:id="weightField" layoutX="33.0" layoutY="162.0" promptText="Enter weight" />
+      <Label layoutX="34.0" layoutY="145.0" text="Weight:" />
+      <ComboBox fx:id="cargoTypeComboBox" layoutX="33.0" layoutY="62.0" prefWidth="150.0" promptText="Pick a type" />
+    </children>
+</AnchorPane>

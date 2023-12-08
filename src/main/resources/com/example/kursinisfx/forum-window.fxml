@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<AnchorPane prefHeight="534.0" prefWidth="488.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.kursinisfx.fxControllers.ForumWindow">
+    <children>
+        <MenuBar prefHeight="25.0" prefWidth="488.0">
+            <menus>
+                <Menu mnemonicParsing="false" text="Log out">
+                    <items>
+                        <MenuItem fx:id="logOutBtn" mnemonicParsing="false" onAction="#logout" text="Log out" />
+                    </items>
+                </Menu>
+                <Menu mnemonicParsing="false" text="Destinations">
+                    <items>
+                        <MenuItem fx:id="destinationsBtn" mnemonicParsing="false" onAction="#allDestinations" text="All destinations" />
+                    </items>
+                </Menu>
+                <Menu fx:id="vehicleMenuBtn" mnemonicParsing="false" text="Vehicle">
+                    <items>
+                        <MenuItem fx:id="vehiclesBtn" mnemonicParsing="false" onAction="#allVehicles" text="All vehicles" />
+                    </items>
+                </Menu>
+                <Menu fx:id="usersMenuBtn" mnemonicParsing="false" text="Users">
+                    <items>
+                        <MenuItem fx:id="usersBtn" mnemonicParsing="false" onAction="#allUsers" text="All users" />
+                    </items>
+                </Menu>
+                <Menu mnemonicParsing="false" text="Forum">
+                    <items>
+                        <MenuItem fx:id="forumBtn" mnemonicParsing="false" onAction="#goToForum" text="Forum" />
+                    </items>
+                </Menu>
+            </menus>
+        </MenuBar>
+        <Label layoutX="14.0" layoutY="36.0" text="Forum">
+            <font>
+                <Font name="JetBrains Mono ExtraBold" size="15.0" />
+            </font></Label>
+        <ListView fx:id="forumList" layoutX="13.0" layoutY="62.0" onMouseClicked="#loadComments" prefHeight="417.0" prefWidth="154.0" />
+        <TreeView fx:id="commentTree" layoutX="182.0" layoutY="151.0" prefHeight="326.0" prefWidth="293.0">
+            <contextMenu>
+                <ContextMenu>
+                    <items>
+                        <MenuItem fx:id="ReplyItem" mnemonicParsing="false" onAction="#replyComment" text="Reply" />
+                        <MenuItem fx:id="deleteItem" mnemonicParsing="false" onAction="#deleteComment" text="Delete" />
+                    </items>
+                </ContextMenu>
+            </contextMenu>
+        </TreeView>
+      <Label layoutX="182.0" layoutY="127.0" text="Comments">
+         <font>
+            <Font name="JetBrains Mono ExtraBold" size="15.0" />
+         </font>
+      </Label>
+      <Button fx:id="createForumBtn" layoutX="13.0" layoutY="495.0" mnemonicParsing="false" onAction="#createForum" text="Create" />
+      <Button fx:id="deleteForumBtn" layoutX="84.0" layoutY="495.0" mnemonicParsing="false" onAction="#deleteForum" text="Delete" />
+         <Button fx:id="createCommentBtn" layoutX="259.0" layoutY="495.0" mnemonicParsing="false" onAction="#createComment" text="Add comment" />
+      <TextArea fx:id="descriptionField" editable="false" layoutX="182.0" layoutY="62.0" prefHeight="64.0" prefWidth="293.0" text="Description" />
+      <Label fx:id="usernameLabel" layoutX="420.0" layoutY="38.0" text="Username" textAlignment="RIGHT" />
+      <Label fx:id="dateLabel" layoutX="182.0" layoutY="38.0" text="date" />
+    </children>
+</AnchorPane>

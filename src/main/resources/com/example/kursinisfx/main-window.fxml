@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<AnchorPane prefHeight="337.0" prefWidth="325.0" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.kursinisfx.fxControllers.MainWindow">
+   <children>
+      <MenuBar layoutY="2.0" prefHeight="25.0" prefWidth="325.0">
+        <menus>
+          <Menu mnemonicParsing="false" text="Log out">
+            <items>
+              <MenuItem fx:id="logOutBtn" mnemonicParsing="false" onAction="#logout" text="Log out" />
+            </items>
+          </Menu>
+          <Menu mnemonicParsing="false" text="Destinations">
+            <items>
+              <MenuItem fx:id="destinationsBtn" mnemonicParsing="false" onAction="#allDestinations" text="All destinations" />
+            </items>
+          </Menu>
+          <Menu fx:id="vehicleMenuBtn" mnemonicParsing="false" text="Vehicle">
+            <items>
+              <MenuItem fx:id="vehiclesBtn" mnemonicParsing="false" onAction="#allVehicles" text="All vehicles" />
+            </items>
+          </Menu>
+          <Menu fx:id="usersMenuBtn" mnemonicParsing="false" text="Users">
+            <items>
+              <MenuItem fx:id="usersBtn" mnemonicParsing="false" onAction="#allUsers" text="All users" />
+            </items>
+          </Menu>
+          <Menu mnemonicParsing="false" text="Forum">
+            <items>
+              <MenuItem fx:id="forumBtn" mnemonicParsing="false" onAction="#goToForum" text="Forum" />
+            </items>
+          </Menu>
+        </menus>
+      </MenuBar>
+     <Label alignment="CENTER" contentDisplay="CENTER" layoutX="83.0" layoutY="95.0" text="WELCOME" textAlignment="CENTER">
+       <font>
+         <Font name="JetBrains Mono ExtraBold" size="38.0" />
+       </font></Label>
+     <Label fx:id="nameSurname" alignment="CENTER" layoutX="113.0" layoutY="181.0" text="NAME+SURNAME"
+            textAlignment="CENTER"/>
+   </children>
+</AnchorPane>
