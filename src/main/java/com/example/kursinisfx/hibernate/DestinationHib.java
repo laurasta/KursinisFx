@@ -13,187 +13,102 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class DestinationHib {
-    EntityManager entityManager = null;
-    EntityManagerFactory entityManagerFactory = null;
+
+    private final EntityManagerFactory entityManagerFactory;
 
     public DestinationHib(EntityManagerFactory entityManagerFactory) {
         this.entityManagerFactory = entityManagerFactory;
     }
 
-    //  CREATE ----------------------------------
+    private void performTransaction(EntityManager entityManager, Runnable transactionLogic) {
+        try {
+            entityManager.getTransaction().begin();
+            transactionLogic.run();
+            entityManager.getTransaction().commit();
+        } catch (Exception e) {
+            e.printStackTrace();
+            if (entityManager.getTransaction().isActive()) {
+                entityManager.getTransaction().rollback();
+            }
+        } finally {
+            entityManager.close();
+        }
+    }
+
+
+
+    // CREATE ----------------------------------
 
     public void createDestination(Destination destination) {
-        entityManager = entityManagerFactory.createEntityManager();
-        try {
-            entityManager.getTransaction().begin();
-            entityManager.persist(destination);
-            entityManager.getTransaction().commit();
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            if (entityManager != null) entityManager.close();
-        }
-    }
-    public void createCheckpoint(Checkpoint checkpoint) {
-        entityManager = entityManagerFactory.createEntityManager();
-        try {
-            entityManager.getTransaction().begin();
-            entityManager.persist(checkpoint);
-            entityManager.getTransaction().commit();
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            if (entityManager != null) entityManager.close();
-        }
-    }
-    public void createCargo(Cargo cargo) {
-        entityManager = entityManagerFactory.createEntityManager();
-        try {
-            entityManager.getTransaction().begin();
-            entityManager.persist(cargo);
-            entityManager.getTransaction().commit();
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            if (entityManager != null) entityManager.close();
-        }
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        performTransaction(entityManager, () -> entityManager.persist(destination));
     }
 
-    //  UPDATE ----------------------------------
+    public void createCheckpoint(Checkpoint checkpoint) {
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        performTransaction(entityManager, () -> entityManager.persist(checkpoint));
+    }
+
+    public void createCargo(Cargo cargo) {
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        performTransaction(entityManager, () -> entityManager.persist(cargo));
+    }
+
+    // UPDATE ----------------------------------
+
     public void updateDestination(Destination destination) {
         EntityManager entityManager = entityManagerFactory.createEntityManager();
-        try {
-            entityManager.getTransaction().begin();
-            entityManager.merge(destination);
-            entityManager.getTransaction().commit();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        finally {
-            if (entityManager != null) {
-                entityManager.close();
-            }
-        }
+        performTransaction(entityManager, () -> entityManager.merge(destination));
     }
+
     public void updateCheckpoint(Checkpoint checkpoint) {
         EntityManager entityManager = entityManagerFactory.createEntityManager();
-        try {
-            entityManager.getTransaction().begin();
-            entityManager.merge(checkpoint);
-            entityManager.getTransaction().commit();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        finally {
-            if (entityManager != null) {
-                entityManager.close();
-            }
-        }
+        performTransaction(entityManager, () -> entityManager.merge(checkpoint));
     }
 
-    //  DELETE ----------------------------------
+    // DELETE ----------------------------------
 
-    public void removeCargo( int id) {
+    public void removeCargo(int id) {
         EntityManager entityManager = entityManagerFactory.createEntityManager();
-        try {
-            entityManager.getTransaction().begin();
-            Cargo cargo = null;
-            try {
-                cargo = entityManager.getReference(Cargo.class, id);
-                cargo.getId();
-            } catch (Exception e) {
-                System.out.println("There is no cargo by given id");
-            }
+        performTransaction(entityManager, () -> {
+            Cargo cargo = entityManager.getReference(Cargo.class, id);
             entityManager.remove(cargo);
-            entityManager.getTransaction().commit();
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            if (entityManager != null) {
-                entityManager.close();
-            }
-        }
-    }
-    public void removeCheckpoint( int id) {
-        EntityManager entityManager = entityManagerFactory.createEntityManager();
-        try {
-            entityManager.getTransaction().begin();
-            Checkpoint checkpoint = null;
-            try {
-                checkpoint = entityManager.getReference(Checkpoint.class, id);
-                checkpoint.getId();
-            } catch (Exception e) {
-                System.out.println("There is no checkpoint by given id");
-            }
-            entityManager.remove(checkpoint);
-            entityManager.getTransaction().commit();
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            if (entityManager != null) {
-                entityManager.close();
-            }
-        }
-    }
-    public void removeDestination( int id) {
-        EntityManager entityManager = entityManagerFactory.createEntityManager();
-        try {
-            entityManager.getTransaction().begin();
-            Destination destination = null;
-            try {
-                destination = entityManager.getReference(Destination.class, id);
-                destination.getId();
-            } catch (Exception e) {
-                System.out.println("There is no destination by given id");
-            }
-            entityManager.remove(destination);
-            entityManager.getTransaction().commit();
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            if (entityManager != null) {
-                entityManager.close();
-            }
-        }
+        });
     }
 
-    //  READ ----------------------------------
+    public void removeCheckpoint(int id) {
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        performTransaction(entityManager, () -> {
+            Checkpoint checkpoint = entityManager.getReference(Checkpoint.class, id);
+            entityManager.remove(checkpoint);
+        });
+    }
+
+    public void removeDestination(int id) {
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        performTransaction(entityManager, () -> {
+            Destination destination = entityManager.getReference(Destination.class, id);
+            entityManager.remove(destination);
+        });
+    }
+
+    // READ ----------------------------------
+
     public Cargo getCargoById(int id) {
-        entityManager = entityManagerFactory.createEntityManager();
-        Cargo cargo = null;
-        try {
-            entityManager.getTransaction().begin();
-            cargo = entityManager.find(Cargo.class, id);
-            entityManager.getTransaction().commit();
-        } catch (Exception e) {
-            System.out.println("No such cargo by given Id");
-        }
-        return cargo;
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        return entityManager.find(Cargo.class, id);
     }
+
     public Checkpoint getCheckpointById(int id) {
-        entityManager = entityManagerFactory.createEntityManager();
-        Checkpoint checkpoint = null;
-        try {
-            entityManager.getTransaction().begin();
-            checkpoint = entityManager.find(Checkpoint.class, id);
-            entityManager.getTransaction().commit();
-        } catch (Exception e) {
-            System.out.println("No such checkpoint by given Id");
-        }
-        return checkpoint;
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        return entityManager.find(Checkpoint.class, id);
     }
+
     public Destination getDestinationById(int id) {
-        entityManager = entityManagerFactory.createEntityManager();
-        Destination destination = null;
-        try {
-            entityManager.getTransaction().begin();
-            destination = entityManager.find(Destination.class, id);
-            entityManager.getTransaction().commit();
-        } catch (Exception e) {
-            System.out.println("No such destination by given Id");
-        }
-        return destination;
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        return entityManager.find(Destination.class, id);
     }
+
     public List<Checkpoint> getCheckpointsByDestination(Destination destination) {
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         try {
@@ -204,9 +119,13 @@ public class DestinationHib {
             Query q = entityManager.createQuery(query);
             return q.getResultList();
         } catch (NoResultException e) {
-            return null;
+            return new ArrayList<>();
+        } finally {
+            entityManager.close();
         }
     }
+
+
     public List<Cargo> getCargosByCheckpoint(Checkpoint checkpoint) {
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         try {
@@ -217,40 +136,40 @@ public class DestinationHib {
             Query q = entityManager.createQuery(query);
             return q.getResultList();
         } catch (NoResultException e) {
-            return null;
+            return new ArrayList<>();
+        } finally {
+            entityManager.close();
         }
     }
 
-    public List<Vehicle> getAllVehicle(){
-        entityManager = entityManagerFactory.createEntityManager();
+
+    public List<Vehicle> getAllVehicle() {
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
         try {
-            CriteriaQuery<Object> query = entityManager.getCriteriaBuilder().createQuery();
+            CriteriaQuery<Vehicle> query = entityManager.getCriteriaBuilder().createQuery(Vehicle.class);
             query.select(query.from(Vehicle.class));
             Query q = entityManager.createQuery(query);
             return q.getResultList();
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
-            if (entityManager != null) {
-                entityManager.close();
-            }
+            entityManager.close();
         }
         return new ArrayList<>();
     }
 
+
     public List<Destination> getAllDestinations() {
-        entityManager = entityManagerFactory.createEntityManager();
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
         try {
-            CriteriaQuery<Object> query = entityManager.getCriteriaBuilder().createQuery();
+            CriteriaQuery<Destination> query = entityManager.getCriteriaBuilder().createQuery(Destination.class);
             query.select(query.from(Destination.class));
             Query q = entityManager.createQuery(query);
             return q.getResultList();
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
-            if (entityManager != null) {
-                entityManager.close();
-            }
+            entityManager.close();
         }
         return new ArrayList<>();
     }

@@ -22,7 +22,7 @@
       <TextField fx:id="surnameField" layoutX="202.0" layoutY="57.0" promptText="Enter surname" />
       <TextField fx:id="emailField" layoutX="203.0" layoutY="106.0" promptText="Enter email" />
       <TextField fx:id="phoneNumberField" layoutX="200.0" layoutY="155.0" promptText="Enter phone number" />
-      <CheckBox fx:id="HealthCertifField" layoutX="28.0" layoutY="292.0" mnemonicParsing="false" text="Health Certificate" />
+      <CheckBox fx:id="healthCertifField" layoutX="28.0" layoutY="292.0" mnemonicParsing="false" text="Health Certificate" />
       <Button fx:id="createBtn" layoutX="258.0" layoutY="410.0" mnemonicParsing="false" onAction="#createNewUser" text="Create new User" />
       <TextField fx:id="driverLicenseField" layoutX="27.0" layoutY="250.0" onAction="#disableFields" promptText=" A,B1,B,C1..." />
       <RadioButton fx:id="driverRadio" layoutX="75.0" layoutY="199.0" mnemonicParsing="false" onAction="#disableFields" text="Driver" />

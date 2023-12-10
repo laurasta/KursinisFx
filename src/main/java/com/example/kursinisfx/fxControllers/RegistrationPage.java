@@ -34,7 +34,7 @@ public class RegistrationPage implements Initializable {
     @FXML
     public TextField phoneNumberField;
     @FXML
-    public CheckBox HealthCertifField;
+    public CheckBox healthCertifField;
     @FXML
     public Button createBtn;
     @FXML
@@ -56,7 +56,7 @@ public class RegistrationPage implements Initializable {
     @FXML
     public Button addVehicleBtn;
     @FXML
-    public ComboBox vehicleCombobox;
+    public ComboBox<String> vehicleCombobox;
     private EntityManagerFactory entityManagerFactory;
     private UserHib userHib;
     private VehicleHib vehicleHib;
@@ -65,26 +65,36 @@ public class RegistrationPage implements Initializable {
     private Boolean registration = false;
     final ToggleGroup group = new ToggleGroup();
 
-    //  SET UP ------------------------------------
+    private static final int VEHICLE_ID_INDEX = 0;
 
     public void setData(EntityManagerFactory entityManagerFactory, User selectedUser, int currentUserId) {
+        initializeFields(entityManagerFactory, selectedUser, currentUserId);
+        fillVehicleCombobox();
+        fillFields();
+    }
+
+    public void setData(EntityManagerFactory entityManagerFactory, Boolean registration) {
+        initializeFields(entityManagerFactory, null, 0);
+        this.registration = registration;
+        vehicleCombobox.setVisible(false);
+        addVehicleBtn.setVisible(false);
+    }
+
+    private void initializeFields(EntityManagerFactory entityManagerFactory, User selectedUser, int currentUserId) {
         this.entityManagerFactory = entityManagerFactory;
         this.selectedUser = selectedUser;
         this.userHib = new UserHib(entityManagerFactory);
         this.vehicleHib = new VehicleHib(entityManagerFactory);
         this.currentUserId = currentUserId;
-
-        List<Vehicle> vehicles = vehicleHib.getAllVehicles();
-        vehicles.forEach(v -> vehicleCombobox.getItems().add(v.getId() +": " + v.getModel() + " " + v.getLicenseNumber()));
-        fillFields();
     }
 
-    public void setData(EntityManagerFactory entityManagerFactory, Boolean registration) {
-        this.entityManagerFactory = entityManagerFactory;
-        this.userHib = new UserHib(entityManagerFactory);
-        this.registration = registration;
-        vehicleCombobox.setVisible(false);
-        addVehicleBtn.setVisible(false);
+    private void fillVehicleCombobox() {
+        List<Vehicle> vehicles = vehicleHib.getAllVehicles();
+        vehicles.forEach(v -> vehicleCombobox.getItems().add(formatVehicleInfo(v)));
+    }
+
+    private String formatVehicleInfo(Vehicle vehicle) {
+        return vehicle.getId() + ": " + vehicle.getModel() + " " + vehicle.getLicenseNumber();
     }
 
     private void fillFields() {
@@ -94,162 +104,195 @@ public class RegistrationPage implements Initializable {
         surnameField.setText(selectedUser.getSurname());
         emailField.setText(selectedUser.getEmail());
         phoneNumberField.setText(selectedUser.getPhoneNumber());
+
         Trucker selectedTrucker = userHib.getTruckerById(selectedUser.getId());
         Manager selectedManager = userHib.getManagerById(selectedUser.getId());
+
         vehicleCombobox.setVisible(true);
         addVehicleBtn.setVisible(true);
-        if(selectedUser.getUserType() == UserType.TRUCKER){
-            driverLicenseField.setText(selectedTrucker.getDriverLicense());
-            HealthCertifField.setSelected(selectedTrucker.getHealthCertificate());
-            workEmailField.setVisible(false);
-            isAdminField.setVisible(false);
-            workEmailT.setVisible(false);
-            managerRadio.setVisible(false);
-            driverRadio.setSelected(true);
-            disableFields();
-        } else if(selectedUser.getUserType() != UserType.TRUCKER){
-            workEmailField.setText(selectedManager.getWorkEmail());
-            isAdminField.setSelected(selectedManager.getIsAdmin());
-            driverLicenseField.setVisible(false);
-            driverLicenseT.setVisible(false);
-            HealthCertifField.setVisible(false);
-            driverRadio.setVisible(false);
-            managerRadio.setSelected(true);
-            disableFields();
+
+        if (selectedUser.getUserType() == UserType.TRUCKER) {
+            fillTruckerFields(selectedTrucker);
+        } else if (selectedUser.getUserType() != UserType.TRUCKER) {
+            fillManagerFields(selectedManager);
         }
+
         try {
-            vehicleCombobox.setValue(selectedTrucker.getVehicle());
-            vehicleCombobox.getSelectionModel().select(selectedTrucker.getVehicle().getId() + ": " + selectedTrucker.getVehicle().getModel() + " " + selectedTrucker.getVehicle().getLicenseNumber());
-
+            String vehicleInfo = formatVehicleInfo(selectedTrucker.getVehicle());
+            vehicleCombobox.setValue(vehicleInfo);
+            vehicleCombobox.getSelectionModel().select(vehicleInfo);
         } catch (Exception e) {
-
+            // Handle the exception (log or provide feedback)
         }
-        createBtn.setOnAction(actionEvent ->  {
-            try {
-                updateUser();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        });
+
+        createBtn.setOnAction(this::updateUser);
         createBtn.setText("Update");
     }
 
+    private void fillTruckerFields(Trucker selectedTrucker) {
+        driverLicenseField.setText(selectedTrucker.getDriverLicense());
+        healthCertifField.setSelected(selectedTrucker.getHealthCertificate());
+        workEmailField.setVisible(false);
+        isAdminField.setVisible(false);
+        workEmailT.setVisible(false);
+        managerRadio.setVisible(false);
+        driverRadio.setSelected(true);
+        disableFields();
+    }
+
+    private void fillManagerFields(Manager selectedManager) {
+        workEmailField.setText(selectedManager.getWorkEmail());
+        isAdminField.setSelected(selectedManager.getIsAdmin());
+        driverLicenseField.setVisible(false);
+        driverLicenseT.setVisible(false);
+        healthCertifField.setVisible(false);
+        driverRadio.setVisible(false);
+        managerRadio.setSelected(true);
+        disableFields();
+    }
+
     public void disableFields() {
+        if (selectedUser == null) {
+            return;
+        }
+
         driverRadio.setToggleGroup(group);
         managerRadio.setToggleGroup(group);
 
-        if (driverRadio.isSelected()) {
-            workEmailField.setDisable(true);
-            isAdminField.setDisable(true);
-            HealthCertifField.setDisable(false);
-            driverLicenseField.setDisable(false);
-        } else if (managerRadio.isSelected()) {
-            HealthCertifField.setDisable(true);
-            driverLicenseField.setDisable(true);
-            workEmailField.setDisable(false);
-            isAdminField.setDisable(false);
-        } else {
-            workEmailField.setDisable(true);
-            isAdminField.setDisable(true);
-            HealthCertifField.setDisable(true);
-            driverLicenseField.setDisable(true);
+        switch (selectedUser.getUserType()) {
+            case TRUCKER:
+                workEmailField.setDisable(true);
+                isAdminField.setDisable(true);
+                healthCertifField.setDisable(false);
+                driverLicenseField.setDisable(false);
+                break;
+            case MANAGER:
+                healthCertifField.setDisable(true);
+                driverLicenseField.setDisable(true);
+                workEmailField.setDisable(false);
+                isAdminField.setDisable(false);
+                break;
+            default:
+                workEmailField.setDisable(true);
+                isAdminField.setDisable(true);
+                healthCertifField.setDisable(true);
+                driverLicenseField.setDisable(true);
         }
     }
 
-    //  CREATE -------------------------------------
 
     public void createNewUser() throws IOException {
         if (driverRadio.isSelected()) {
-            Trucker trucker = new Trucker(loginField.getText(), passwordField.getText(), nameField.getText(), surnameField.getText(), emailField.getText(), phoneNumberField.getText(), HealthCertifField.isSelected(), driverLicenseField.getText(), null);
-            userHib.createUser(trucker);
+            createTruckerUser();
         } else {
-            Manager manager = new Manager(loginField.getText(), passwordField.getText(), nameField.getText(), surnameField.getText(), emailField.getText(), phoneNumberField.getText(),  workEmailField.getText(), isAdminField.isSelected());
-            if (manager.getIsAdmin()){manager.setUserType(UserType.ADMIN);}
-            userHib.createUser(manager);
+            createManagerUser();
         }
         FxUtils.generateAlert(Alert.AlertType.INFORMATION, "User registration report", "User created successfully!");
         returnToPrevious();
     }
 
+    private void createTruckerUser() {
+        Trucker trucker = new Trucker(loginField.getText(), passwordField.getText(), nameField.getText(),
+                surnameField.getText(), emailField.getText(), phoneNumberField.getText(),
+                healthCertifField.isSelected(), driverLicenseField.getText(), null);
+        userHib.createUser(trucker);
+    }
+
+    private void createManagerUser() {
+        Manager manager = new Manager(loginField.getText(), passwordField.getText(), nameField.getText(),
+                surnameField.getText(), emailField.getText(), phoneNumberField.getText(), workEmailField.getText(),
+                isAdminField.isSelected());
+        manager.setUserType(isAdminField.isSelected() ? UserType.ADMIN : UserType.MANAGER);
+        userHib.createUser(manager);
+    }
+
     public void AddVehicle() {
         Trucker selectedTrucker = userHib.getTruckerById(selectedUser.getId());
-        selectedTrucker.setVehicle(vehicleHib.getVehicleById(Integer.parseInt(vehicleCombobox.getValue().toString().split(":")[0])));
+        int vehicleId = Integer.parseInt(getVehicleIdFromCombobox());
+        selectedTrucker.setVehicle(vehicleHib.getVehicleById(vehicleId));
         userHib.editUser(selectedTrucker);
-
         FxUtils.generateAlert(Alert.AlertType.INFORMATION, "User update report", "Vehicle added successfully!");
-
     }
 
-    //  UPDATE ---------------------------------------------
+    private String getVehicleIdFromCombobox() {
+        return vehicleCombobox.getValue().split(":")[VEHICLE_ID_INDEX];
+    }
 
-    public void updateUser() throws IOException {
-        Trucker selectedTrucker = userHib.getTruckerById(selectedUser.getId());
-        Manager selectedManager = userHib.getManagerById(selectedUser.getId());
-        if(selectedUser.getUserType() == UserType.TRUCKER){
-            selectedTrucker.setLogin(loginField.getText());
-            selectedTrucker.setPassword(passwordField.getText());
-            selectedTrucker.setName(nameField.getText());
-            selectedTrucker.setSurname(surnameField.getText());
-            selectedTrucker.setEmail(emailField.getText());
-            selectedTrucker.setPhoneNumber(phoneNumberField.getText());
-            selectedTrucker.setDriverLicense(driverLicenseField.getText());
-            selectedTrucker.setHealthCertificate(HealthCertifField.isSelected());
-            userHib.editUser(selectedTrucker);
-        } else if(selectedUser.getUserType() != UserType.TRUCKER){
-            selectedManager.setLogin(loginField.getText());
-            selectedManager.setPassword(passwordField.getText());
-            selectedManager.setName(nameField.getText());
-            selectedManager.setSurname(surnameField.getText());
-            selectedManager.setEmail(emailField.getText());
-            selectedManager.setPhoneNumber(phoneNumberField.getText());
-            selectedManager.setWorkEmail(workEmailField.getText());
-            selectedManager.setIsAdmin(isAdminField.isSelected());
-            if (isAdminField.isSelected()){selectedManager.setUserType(UserType.ADMIN);
-            } else {selectedManager.setUserType(UserType.MANAGER);}
-            userHib.editUser(selectedManager);
+    public void updateUser(ActionEvent actionEvent) {
+        try {
+            if (selectedUser.getUserType() == UserType.TRUCKER) {
+                updateTruckerUser();
+            } else {
+                updateManagerUser();
+            }
+            FxUtils.generateAlert(Alert.AlertType.INFORMATION, "User update report", "User updated successfully!");
+            allUsers();
+        } catch (IOException e) {
+            handleIOException(e);
         }
-        FxUtils.generateAlert(Alert.AlertType.INFORMATION, "User update report", "User updated successfully!");
-        allUsers();
     }
 
-    //  MENU ITEMS -------------------------
+    private void updateTruckerUser() {
+        Trucker selectedTrucker = userHib.getTruckerById(selectedUser.getId());
+        updateCommonFields(selectedTrucker);
+        selectedTrucker.setDriverLicense(driverLicenseField.getText());
+        selectedTrucker.setHealthCertificate(healthCertifField.isSelected());
+        userHib.editUser(selectedTrucker);
+    }
 
-    public void returnToPrevious() throws IOException
-    {
-        if(registration) {
+    private void updateManagerUser() {
+        Manager selectedManager = userHib.getManagerById(selectedUser.getId());
+        updateCommonFields(selectedManager);
+        selectedManager.setWorkEmail(workEmailField.getText());
+        selectedManager.setIsAdmin(isAdminField.isSelected());
+        selectedManager.setUserType(isAdminField.isSelected() ? UserType.ADMIN : UserType.MANAGER);
+        userHib.editUser(selectedManager);
+    }
+
+    private void updateCommonFields(User user) {
+        user.setLogin(loginField.getText());
+        user.setPassword(passwordField.getText());
+        user.setName(nameField.getText());
+        user.setSurname(surnameField.getText());
+        user.setEmail(emailField.getText());
+        user.setPhoneNumber(phoneNumberField.getText());
+    }
+
+    private void handleIOException(IOException e) {
+        e.printStackTrace(); // Handle or log the exception as needed
+    }
+
+    public void returnToPrevious() throws IOException {
+        if (registration) {
             goToLogin();
         } else {
             allUsers();
         }
     }
-    private void goToLogin() throws IOException
-    {
-        FXMLLoader fxmlLoader = new FXMLLoader(HelloApplication.class.getResource("login-page.fxml"));
 
-        Scene scene = new Scene(fxmlLoader.load());
-        Stage stage = (Stage) loginField.getScene().getWindow();
-        stage.setTitle("Trucker system");
-        stage.setScene(scene);
-        stage.show();
+    private void goToLogin() throws IOException {
+        FXMLLoader fxmlLoader = new FXMLLoader(HelloApplication.class.getResource("login-page.fxml"));
+        setupScene(fxmlLoader, "Trucker system");
     }
 
     public void allUsers() throws IOException {
         FXMLLoader fxmlLoader = new FXMLLoader(HelloApplication.class.getResource("all-users-window.fxml"));
-        Parent root = fxmlLoader.load();
-
         AllUsersWindow allUsersWindow = fxmlLoader.getController();
         allUsersWindow.setData(entityManagerFactory, currentUserId);
-
-        Scene scene = new Scene(root);
-        Stage stage = (Stage) loginField.getScene().getWindow();
-        stage.setScene(scene);
-        stage.show();
+        setupScene(fxmlLoader, "All Users");
     }
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         disableFields();
-
     }
 
+    private void setupScene(FXMLLoader fxmlLoader, String title) throws IOException {
+        Parent root = fxmlLoader.load();
+        Scene scene = new Scene(root);
+        Stage stage = (Stage) loginField.getScene().getWindow();
+        stage.setTitle(title);
+        stage.setScene(scene);
+        stage.show();
+    }
 }

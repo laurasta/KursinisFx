@@ -13,8 +13,6 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.stage.Stage;
-import javafx.util.Callback;
-import javafx.util.StringConverter;
 
 import javax.persistence.EntityManagerFactory;
 import java.io.IOException;
@@ -24,41 +22,57 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.ResourceBundle;
 
-public class NewDestination {
+public class NewDestination implements Initializable {
     @FXML
-    public MenuItem cancelDestCreate;
+    private MenuItem cancelDestCreate;
+
     @FXML
-    public TextField titleField;
+    private TextField titleField;
+
     @FXML
-    public TextField startAddressField;
+    private TextField startAddressField;
+
     @FXML
-    public TextField endAddressField;
+    private TextField endAddressField;
+
     @FXML
-    public Button createDestinationF;
+    private Button createDestinationF;
+
     @FXML
-    public ComboBox<DestStatus> DestStatusComboBox = new ComboBox<>();
+    private ComboBox<DestStatus> DestStatusComboBox = new ComboBox<>();
+
     @FXML
-    public Label destStatusLabel;
+    private Label destStatusLabel;
+
     @FXML
-    public Label departureDateLabel;
+    private Label departureDateLabel;
+
     @FXML
-    public Label arrivalDateLabel;
+    private Label arrivalDateLabel;
+
     @FXML
-    public ComboBox driverComboBox;
+    private ComboBox<String> driverComboBox;
+
     @FXML
-    public ComboBox managerComboBox;
+    private ComboBox<String> managerComboBox;
+
     @FXML
-    public Label driverLabel;
+    private Label driverLabel;
+
     @FXML
-    public Label respManagerLabel;
+    private Label respManagerLabel;
+
     @FXML
-    public TextField departureDateF;
+    private TextField departureDateF;
+
     @FXML
-    public TextField arrivalDateF;
+    private TextField arrivalDateF;
+
     @FXML
-    public Label windowName;
+    private Label windowName;
+
     @FXML
-    public Button assignBtn;
+    private Button assignBtn;
 
     private EntityManagerFactory entityManagerFactory;
     private UserHib userHib;
@@ -66,7 +80,11 @@ public class NewDestination {
     private DestinationHib destinationHib;
     private Destination selectedDestination;
 
-    //  SET UP ------------------------------
+    @Override
+    public void initialize(URL location, ResourceBundle resources) {
+        DestStatusComboBox.getItems().addAll(DestStatus.values());
+        disableFields();
+    }
 
     public void setData(EntityManagerFactory entityManagerFactory, int currentUserId) {
         this.entityManagerFactory = entityManagerFactory;
@@ -83,21 +101,15 @@ public class NewDestination {
         this.destinationHib = new DestinationHib(entityManagerFactory);
         this.currentUserId = currentUserId;
         this.selectedDestination = selectedDestination;
-        DestStatusComboBox.getItems().addAll(DestStatus.values());
+        DestStatusComboBox.setValue(selectedDestination.getDestStatus());
 
         List<Trucker> truckers = userHib.getAllTruckers();
-        truckers.forEach(t -> driverComboBox.getItems().add(t.getId() +": " + t.getName() + " " + t.getSurname()));
+        truckers.forEach(t -> driverComboBox.getItems().add(t.getId() + ": " + t.getName() + " " + t.getSurname()));
 
         List<Manager> managers = userHib.getAllManagers();
-        managers.forEach(m -> managerComboBox.getItems().add(m.getId() +": " + m.getName() + " " + m.getSurname()));
+        managers.forEach(m -> managerComboBox.getItems().add(m.getId() + ": " + m.getName() + " " + m.getSurname()));
 
-        createDestinationF.setOnAction(actionEvent ->  {
-            try {
-                updateDestination();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        });
+        createDestinationF.setOnAction(this::updateDestination);
         createDestinationF.setText("Update");
 
         fillFields();
@@ -105,9 +117,9 @@ public class NewDestination {
         disableUpdateFields();
     }
 
-    public void disableUpdateFields(){
+    private void disableUpdateFields() {
         User currentUser = userHib.getUserById(currentUserId);
-        if (currentUser.getUserType() == UserType.TRUCKER){
+        if (currentUser.getUserType() == UserType.TRUCKER) {
             DestStatusComboBox.setDisable(false);
             departureDateF.setDisable(true);
             arrivalDateF.setDisable(true);
@@ -117,19 +129,19 @@ public class NewDestination {
             startAddressField.setDisable(true);
             endAddressField.setDisable(true);
             assignBtn.setVisible(true);
-        } else if (currentUser.getUserType() == UserType.MANAGER){
+        } else if (currentUser.getUserType() == UserType.MANAGER) {
             departureDateF.setDisable(true);
             arrivalDateF.setDisable(true);
             managerComboBox.setDisable(true);
         }
     }
 
-    public void disableFields(){
-            DestStatusComboBox.setDisable(true);
-            departureDateF.setDisable(true);
-            arrivalDateF.setDisable(true);
-            driverComboBox.setDisable(true);
-            managerComboBox.setDisable(true);
+    private void disableFields() {
+        DestStatusComboBox.setDisable(true);
+        departureDateF.setDisable(true);
+        arrivalDateF.setDisable(true);
+        driverComboBox.setDisable(true);
+        managerComboBox.setDisable(true);
     }
 
     private void fillFields() {
@@ -153,18 +165,17 @@ public class NewDestination {
         try {
             driverComboBox.getSelectionModel().select(selectedDestination.getDriver().getId() + ": " + selectedDestination.getDriver().getName() + " " + selectedDestination.getDriver().getSurname());
         } catch (Exception e) {
-
+            //code
         }
         managerComboBox.getSelectionModel().select(selectedDestination.getResponsibleManager().getId() + ": " + selectedDestination.getResponsibleManager().getName() + " " + selectedDestination.getResponsibleManager().getSurname());
     }
 
-    //  CREATE -------------------------------------------
-    public void CreateDestination() throws IOException {
-        if (titleField.getText().isEmpty() || startAddressField.getText().isEmpty() || endAddressField.getText().isEmpty()){
+    public void createDestination() throws IOException {
+        if (titleField.getText().isEmpty() || startAddressField.getText().isEmpty() || endAddressField.getText().isEmpty()) {
             FxUtils.generateAlert(Alert.AlertType.WARNING, "Destination report", "Please fill all fields");
         } else {
             Manager manager = userHib.getManagerById(currentUserId);
-            Destination destination = new Destination(titleField.getText(),startAddressField.getText(), endAddressField.getText(), manager);
+            Destination destination = new Destination(titleField.getText(), startAddressField.getText(), endAddressField.getText(), manager);
             destinationHib.createDestination(destination);
 
             FxUtils.generateAlert(Alert.AlertType.INFORMATION, "Destination report", "Destination created successfully!");
@@ -172,32 +183,34 @@ public class NewDestination {
         }
     }
 
-    //  UPDATE -------------------------------------------
+    private void updateDestination(ActionEvent actionEvent) {
+        try {
+            selectedDestination.setTitle(titleField.getText());
+            selectedDestination.setRouteStartAddress(startAddressField.getText());
+            selectedDestination.setDestinationAddress(endAddressField.getText());
 
-    public void updateDestination() throws IOException {
+            if (selectedDestination.getDestStatus() == DestStatus.NEW && DestStatusComboBox.getValue() != DestStatus.NEW) {
+                selectedDestination.setDepartureDate(LocalDateTime.now());
+            }
+            if ((selectedDestination.getDestStatus() == DestStatus.NEW || selectedDestination.getDestStatus() == DestStatus.IN_PROGRESS)
+                    && (DestStatusComboBox.getValue() == DestStatus.CANCELED || DestStatusComboBox.getValue() == DestStatus.COMPLETED)) {
+                selectedDestination.setArrivalDate(LocalDateTime.now());
+            }
+            selectedDestination.setDestStatus(DestStatusComboBox.getValue());
+            String driverComboBoxValue = driverComboBox.getValue();
+            if (driverComboBoxValue != null) {
+                selectedDestination.setDriver(userHib.getTruckerById(Integer.parseInt(driverComboBoxValue.split(":")[0])));
+            }
+            selectedDestination.setResponsibleManager(userHib.getManagerById(Integer.parseInt(managerComboBox.getValue().split(":")[0])));
 
-        selectedDestination.setTitle(titleField.getText());
-        selectedDestination.setRouteStartAddress(startAddressField.getText());
-        selectedDestination.setDestinationAddress(endAddressField.getText());
-
-        if(selectedDestination.getDestStatus() == DestStatus.NEW && DestStatusComboBox.getValue() != DestStatus.NEW){
-            selectedDestination.setDepartureDate(LocalDateTime.now());
-            System.out.println(selectedDestination.getDepartureDate());
+            destinationHib.updateDestination(selectedDestination);
+            FxUtils.generateAlert(Alert.AlertType.INFORMATION, "Destination update report", "Destination updated successfully!");
+            returnToPrevious();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-        if((selectedDestination.getDestStatus() == DestStatus.NEW || selectedDestination.getDestStatus() == DestStatus.IN_PROGRESS)
-                && (DestStatusComboBox.getValue() == DestStatus.CANCELED || DestStatusComboBox.getValue() == DestStatus.COMPLETED)){
-            selectedDestination.setArrivalDate(LocalDateTime.now());
-        }
-        selectedDestination.setDestStatus(DestStatusComboBox.getValue());
-        selectedDestination.setDriver(userHib.getTruckerById(Integer.parseInt(driverComboBox.getValue().toString().split(":")[0])));
-        selectedDestination.setResponsibleManager(userHib.getManagerById(Integer.parseInt(managerComboBox.getValue().toString().split(":")[0])));
-
-        destinationHib.updateDestination(selectedDestination);
-        FxUtils.generateAlert(Alert.AlertType.INFORMATION, "Destination update report", "Destination updated successfully!");
-        returnToPrevious();
     }
 
-    //  MENU ITEM ----------------------------------------
 
     public void returnToPrevious() throws IOException {
         FXMLLoader fxmlLoader = new FXMLLoader(HelloApplication.class.getResource("all-destinations-window.fxml"));
@@ -216,8 +229,5 @@ public class NewDestination {
         Trucker currentTrucker = userHib.getTruckerById(currentUserId);
         selectedDestination.setDriver(currentTrucker);
         driverComboBox.getSelectionModel().select(selectedDestination.getDriver().getId() + ": " + selectedDestination.getDriver().getName() + " " + selectedDestination.getDriver().getSurname());
-        //destinationHib.updateDestination(selectedDestination);
-       // FxUtils.generateAlert(Alert.AlertType.INFORMATION, "Destination update report", "Trucker updated successfully!");
-
     }
 }

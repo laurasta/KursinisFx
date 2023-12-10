@@ -11,178 +11,133 @@ import javax.persistence.Query;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.logging.Logger;
 
 public class UserHib {
-    EntityManagerFactory entityManagerFactory = null;
+    private final EntityManagerFactory entityManagerFactory;
+    private static final Logger logger = Logger.getLogger(UserHib.class.getName());
 
-    public UserHib(EntityManagerFactory entityManagerFactory){
+
+    public UserHib(EntityManagerFactory entityManagerFactory) {
         this.entityManagerFactory = entityManagerFactory;
     }
 
-    //  CREATE ----------------------------------
-    public void createUser(User user) {
-        EntityManager entityManager = entityManagerFactory.createEntityManager();
-        try {
-            entityManager.getTransaction().begin();
-            entityManager.persist(user);
-            entityManager.getTransaction().commit();
-        } catch (Exception e) {
-            e.printStackTrace();
+    private static class CloseableEntityManager implements AutoCloseable {
+        private final EntityManager entityManager;
+
+        public CloseableEntityManager(EntityManager entityManager) {
+            this.entityManager = entityManager;
         }
-        finally {
-            if (entityManager != null) {
+
+        public EntityManager getEntityManager() {
+            return entityManager;
+        }
+
+        @Override
+        public void close() {
+            if (entityManager != null && entityManager.isOpen()) {
                 entityManager.close();
             }
         }
     }
 
-    //  UPDATE ----------------------------------
-
-    public void editUser(User user) {
-        EntityManager entityManager = entityManagerFactory.createEntityManager();
-        try {
+    private void performTransaction(Consumer<EntityManager> transactionLogic) {
+        try (CloseableEntityManager closeableEntityManager = new CloseableEntityManager(entityManagerFactory.createEntityManager())) {
+            EntityManager entityManager = closeableEntityManager.getEntityManager();
             entityManager.getTransaction().begin();
-            entityManager.merge(user);
+            transactionLogic.accept(entityManager);
             entityManager.getTransaction().commit();
         } catch (Exception e) {
             e.printStackTrace();
         }
-        finally {
-            if (entityManager != null) {
-                entityManager.close();
-            }
-        }
     }
 
-    //  DELETE ----------------------------------
-    public void removeUser( int id) {
-        EntityManager entityManager = entityManagerFactory.createEntityManager();
-        try {
+    private <T> T performTransactionWithResult(Function<EntityManager, T> transactionLogic) {
+        try (CloseableEntityManager closeableEntityManager = new CloseableEntityManager(entityManagerFactory.createEntityManager())) {
+            EntityManager entityManager = closeableEntityManager.getEntityManager();
             entityManager.getTransaction().begin();
-            User user = null;
-            try {
-                user = entityManager.getReference(User.class, id);
-                user.getId();
-            } catch (Exception e) {
-                System.out.println("There is no user by given id");
-            }
-            entityManager.remove(user);
+            T result = transactionLogic.apply(entityManager);
             entityManager.getTransaction().commit();
+            return result;
         } catch (Exception e) {
             e.printStackTrace();
-        } finally {
-            if (entityManager != null) {
-                entityManager.close();
-            }
-        }
-    }
-
-    //  READ ----------------------------------
-    public Trucker getTruckerById(int id) {
-        EntityManager entityManager = entityManagerFactory.createEntityManager();
-        Trucker trucker = null;
-        try {
-            entityManager.getTransaction().begin();
-            trucker = entityManager.find(Trucker.class, id);
-            entityManager.getTransaction().commit();
-        } catch (Exception e) {
-            System.out.println("No such trucker by given Id");
-        }
-        return trucker;
-    }
-    public Manager getManagerById(int id) {
-        EntityManager entityManager = entityManagerFactory.createEntityManager();
-        Manager manager = null;
-        try {
-            entityManager.getTransaction().begin();
-            manager = entityManager.find(Manager.class, id);
-            entityManager.getTransaction().commit();
-        } catch (Exception e) {
-            System.out.println("No such manager by given Id");
-        }
-        return manager;
-    }
-
-    public User getUserById(int id) {
-        EntityManager entityManager = entityManagerFactory.createEntityManager();
-        User user = null;
-        try {
-            entityManager.getTransaction().begin();
-            user = entityManager.getReference(User.class, id);
-            entityManager.getTransaction().commit();
-        } catch (Exception e) {
-            System.out.println("There is no user by given id");
-        }
-        return user;
-    }
-
-    public User getUserByLoginData(String login, String psw) {
-        EntityManager entityManager = entityManagerFactory.createEntityManager();
-        Query q = null;
-        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
-        CriteriaQuery<User> query = cb.createQuery(User.class);
-        Root<User> root = query.from(User.class);
-        query.select(root).where(cb.and(cb.like(root.get("login"), login), cb.like(root.get("password"), psw)));
-        try {
-            q = entityManager.createQuery(query);
-            return (User) q.getSingleResult();
-        } catch (NoResultException e) {
             return null;
         }
     }
+
+    public void createUser(User user) {
+        performTransaction(entityManager -> entityManager.persist(user));
+    }
+
+    public void editUser(User user) {
+        performTransaction(entityManager -> entityManager.merge(user));
+    }
+
+    public void removeUser(int id) {
+        performTransaction(entityManager -> {
+            User user = entityManager.find(User.class, id);
+            if (user != null) {
+                entityManager.remove(user);
+            } else {
+                logger.warning("There is no user with the given id: " + id);
+            }
+        });
+    }
+
+    public Trucker getTruckerById(int id) {
+        return performTransactionWithResult(entityManager -> entityManager.find(Trucker.class, id));
+    }
+
+    public Manager getManagerById(int id) {
+        return performTransactionWithResult(entityManager -> entityManager.find(Manager.class, id));
+    }
+
+    public User getUserById(int id) {
+        return performTransactionWithResult(entityManager -> entityManager.find(User.class, id));
+    }
+
+    public User getUserByLoginData(String login, String psw) {
+        return performTransactionWithResult(entityManager -> {
+            CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+            CriteriaQuery<User> query = cb.createQuery(User.class);
+            Root<User> root = query.from(User.class);
+            query.select(root).where(cb.and(cb.like(root.get("login"), login), cb.like(root.get("password"), psw)));
+            try {
+                Query q = entityManager.createQuery(query);
+                return (User) q.getSingleResult();
+            } catch (NoResultException e) {
+                return null;
+            }
+        });
+    }
+
     public List<User> getAllUsers() {
-        EntityManager entityManager = entityManagerFactory.createEntityManager();
-        try {
-            CriteriaQuery<Object> query = entityManager.getCriteriaBuilder().createQuery();
+        return performTransactionWithResult(entityManager -> {
+            CriteriaQuery<User> query = entityManager.getCriteriaBuilder().createQuery(User.class);
             query.select(query.from(User.class));
             Query q = entityManager.createQuery(query);
             return q.getResultList();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        finally {
-            if (entityManager != null) {
-                entityManager.close();
-            }
-        }
-        return null;
+        });
     }
+
     public List<Trucker> getAllTruckers() {
-        EntityManager entityManager = entityManagerFactory.createEntityManager();
-        try {
-            CriteriaQuery<Object> query = entityManager.getCriteriaBuilder().createQuery();
+        return performTransactionWithResult(entityManager -> {
+            CriteriaQuery<Trucker> query = entityManager.getCriteriaBuilder().createQuery(Trucker.class);
             query.select(query.from(Trucker.class));
             Query q = entityManager.createQuery(query);
             return q.getResultList();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        finally {
-            if (entityManager != null) {
-                entityManager.close();
-            }
-        }
-        return null;
+        });
     }
 
     public List<Manager> getAllManagers() {
-        EntityManager entityManager = entityManagerFactory.createEntityManager();
-        try {
-            CriteriaQuery<Object> query = entityManager.getCriteriaBuilder().createQuery();
+        return performTransactionWithResult(entityManager -> {
+            CriteriaQuery<Manager> query = entityManager.getCriteriaBuilder().createQuery(Manager.class);
             query.select(query.from(Manager.class));
             Query q = entityManager.createQuery(query);
             return q.getResultList();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        finally {
-            if (entityManager != null) {
-                entityManager.close();
-            }
-        }
-        return null;
+        });
     }
-
 }
